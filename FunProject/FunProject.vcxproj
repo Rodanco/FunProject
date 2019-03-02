@@ -50,7 +50,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;$(ProjectDir)src\Framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -68,7 +68,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;$(ProjectDir)src\Framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -79,13 +79,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Framework\Definitions.h" />
+    <ClCompile Include="src\Framework\Manager.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\Framework\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Structs\Timer.hpp" />
-    <ClInclude Include="src\Structs\Vector2.hpp" />
-    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\Framework\Manager.h" />
+    <ClInclude Include="src\Framework\Structs\Vector2.hpp" />
+    <ClInclude Include="src\Framework\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

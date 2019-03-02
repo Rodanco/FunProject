@@ -2,6 +2,7 @@
 #include "Window.h"
 #include <functional>
 
+
 int main(int argc, char* argv[])
 {
 	{
@@ -9,8 +10,14 @@ int main(int argc, char* argv[])
 		SDL_Event e;
 		while (!window->IsToClose())
 		{
+			window->ClearWindow();
 			while (SDL_PollEvent(&e))
+			{
 				window->HandleEvents(e);
+				if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_f)
+					window->ToogleFullscreen();
+			}
+			window->Draw();
 		}
 	}
 	return 0;

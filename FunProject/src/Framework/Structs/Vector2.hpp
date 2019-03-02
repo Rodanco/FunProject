@@ -102,7 +102,7 @@ struct Vector2 final
 		y = static_cast<T>(vec.y);
 	}
 
-	std::string_view ToText()
+	std::string ToText()
 	{
 		return "x: " + std::to_string(x) + ", y: " + std::to_string(y);
 	}
