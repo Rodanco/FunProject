@@ -1,6 +1,6 @@
 #pragma once
+#include <string_view>
 #include "SDL/SDL_types.h"
-#include <atomic>
 
 template<typename T>
 struct Vector2 final
@@ -10,7 +10,8 @@ struct Vector2 final
 	{}
 	Vector2(T X, T Y) noexcept : x(X), y(Y)
 	{}
-	Vector2(const Vector2<T>& vec) noexcept = default;
+	Vector2(const Vector2<T>& vec) noexcept : x(vec.x), y(vec.y)
+	{}
 	template<typename U>
 	explicit Vector2(const Vector2<U>& vec) noexcept: x(static_cast<T>(vec.x)), y(static_cast<T>(vec.y))
 	{}
@@ -106,11 +107,6 @@ struct Vector2 final
 		return "x: " + std::to_string(x) + ", y: " + std::to_string(y);
 	}
 };
-
-typedef Vector2<Uint32> Vector2u;
-typedef Vector2<Sint32> Vector2i;
-typedef std::atomic<Vector2i> atomicVec2i;
-typedef std::atomic<Vector2u> atomicVec2u;
 
 template<typename T>
 inline static Vector2<T> operator +(const Vector2<T>& left, const Vector2<T>& right)

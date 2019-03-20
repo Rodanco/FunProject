@@ -9,7 +9,8 @@ class Manager final
 	std::unique_ptr<Window> dmWindow, playersWindow;
 	Uint32 maxFPS;
 	float msMaxFPS;
-	std::atomic_bool quit;
+	bool quit;
+	SDL_Event sdlEvents;
 	std::thread inputThread;
 	std::atomic_int atomicDeltaTime;
 
