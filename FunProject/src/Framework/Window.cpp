@@ -13,7 +13,7 @@ Window::Window(Uint32 width, Uint32 height) : Window(SDL_WINDOWPOS_UNDEFINED, SD
 }
 
 Window::Window(Uint32 posX, Uint32 posY, Uint32 width, Uint32 height)
-	: window(nullptr), renderer(nullptr), pos(), currentSize(width, height), beforeFullscreenSize(width, height), 
+	: window(nullptr), renderer(nullptr), pos(Vector2<Uint32>()), currentSize(Vector2<Uint32>(width, height)), 
 	  isMinimized(false), close(false), hasResize(false), fullscreen(false), windowID(0)
 {
 	window = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
@@ -22,7 +22,9 @@ Window::Window(Uint32 posX, Uint32 posY, Uint32 width, Uint32 height)
 	renderer = std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>>(
 		SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED),
 		SDL_DestroyRenderer);
-	SDL_GetWindowPosition(window.get(), &pos.x, &pos.y);
+	int x, y;
+	SDL_GetWindowPosition(window.get(), &x, &y);
+	pos.store(Vector2u(x, y), std::memory_order::memory_order_relaxed);
 	windowID = SDL_GetWindowID(window.get());
 }
 
@@ -34,39 +36,35 @@ void Window::HandleEvents(const SDL_Event & e)
 	if (windowEvent.windowID != windowID)
 		return;
 	ONLY_DEBUG(std::string logText = "Window " + std::to_string(SDL_GetWindowID(window.get()));)
-	switch (windowEvent.event)
-	{
-	case SDL_WINDOWEVENT_FOCUS_LOST:
-		//ONLY_DEBUG(logText += " has lost focus from user";)
-		break;
-	case SDL_WINDOWEVENT_FOCUS_GAINED:
-		//ONLY_DEBUG(logText += " has gained focus from user";)
-		break;
-	case SDL_WINDOWEVENT_CLOSE:
-		close = true;
-		LOG("Window %d closed.", SDL_GetWindowID(window.get()));
-		break;
-	case SDL_WINDOWEVENT_MINIMIZED:
-		isMinimized = true;
-		LOG("Window %d minimized.", SDL_GetWindowID(window.get()));
-		break;
-	case SDL_WINDOWEVENT_RESTORED:
-		isMinimized = false;
-		LOG("Window %d restored.", SDL_GetWindowID(window.get()));
-		break;
-	case SDL_WINDOWEVENT_RESIZED:
-		currentSize.x = windowEvent.data1;
-		currentSize.y = windowEvent.data2;
-		if (!fullscreen)
-			beforeFullscreenSize = currentSize;
-		hasResize = true;
-		LOG("Window %d resized to %s.", SDL_GetWindowID(window.get()), currentSize.ToText().data());
-		break;
-	case SDL_WINDOWEVENT_MOVED:
-		pos.x = windowEvent.data1;
-		pos.y = windowEvent.data2;
-		LOG("Window %d moved to %s.", SDL_GetWindowID(window.get()), pos.ToText().data());
-		break;
+		switch (windowEvent.event)
+		{
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			//ONLY_DEBUG(logText += " has lost focus from user";)
+			break;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			//ONLY_DEBUG(logText += " has gained focus from user";)
+			break;
+		case SDL_WINDOWEVENT_CLOSE:
+			close = true;
+			LOG("Window %d closed.", SDL_GetWindowID(window.get()));
+			break;
+		case SDL_WINDOWEVENT_MINIMIZED:
+			isMinimized = true;
+			LOG("Window %d minimized.", SDL_GetWindowID(window.get()));
+			break;
+		case SDL_WINDOWEVENT_RESTORED:
+			isMinimized = false;
+			LOG("Window %d restored.", SDL_GetWindowID(window.get()));
+			break;
+		case SDL_WINDOWEVENT_RESIZED:
+			currentSize.store(Vector2u(windowEvent.data1, windowEvent.data2), std::memory_order::memory_order_release);
+			hasResize = true;
+			LOG("Window %d resized to %s.", SDL_GetWindowID(window.get()), currentSize.load(std::memory_order_acquire).ToText().data());
+			break;
+		case SDL_WINDOWEVENT_MOVED:
+			pos.store(Vector2u(windowEvent.data1, windowEvent.data2), std::memory_order::memory_order_release);
+			LOG("Window %d moved to %s.", SDL_GetWindowID(window.get()), pos.load(std::memory_order_acquire).ToText().data());
+			break;
 	}
 }
 
@@ -119,6 +117,6 @@ bool Window::IsToClose() const
 bool Window::HasResized(Vector2<int>* newSize) const
 {
 	if (newSize != nullptr)
-		*newSize = currentSize;
+		*newSize = currentSize.load();
 	return hasResize;
 }

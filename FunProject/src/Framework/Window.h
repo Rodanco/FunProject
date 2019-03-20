@@ -10,7 +10,7 @@ class Window final
 	std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window;
 	std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>> renderer;
 
-	Vector2<int> pos, currentSize, beforeFullscreenSize;
+	atomicVec2u pos, currentSize;
 	bool isMinimized, close, hasResize, fullscreen;
 	int windowID;
 
