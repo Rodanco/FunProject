@@ -1,11 +1,15 @@
 #include "SDL/SDL.h"
-#include "Window.h"
+#include "Manager.h"
 #include <functional>
 
 
 int main(int argc, char* argv[])
 {
 	{
+		std::unique_ptr<Manager> manager = std::make_unique<Manager>();
+		manager->Run();
+	}
+	/*{
 		std::unique_ptr<Window> window = std::make_unique<Window>(1280, 720);
 		SDL_Event e;
 		while (!window->IsToClose())
@@ -19,6 +23,7 @@ int main(int argc, char* argv[])
 			}
 			window->Draw();
 		}
-	}
+	}*/
+
 	return 0;
 }
