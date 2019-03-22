@@ -51,7 +51,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;$(ProjectDir)src\Framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ENABLE_ATOMIC_ALIGNMENT_FIX;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -69,6 +69,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\conra\MEGA\MEGAsync\Outros\SDL2-2.0.9\include;$(ProjectDir)src\Framework;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_ENABLE_ATOMIC_ALIGNMENT_FIX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -81,11 +82,13 @@
   <ItemGroup>
     <ClCompile Include="src\Framework\Definitions.h" />
     <ClCompile Include="src\Framework\Manager.cpp" />
+    <ClCompile Include="src\Framework\Sprite.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Framework\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Framework\Manager.h" />
+    <ClInclude Include="src\Framework\Sprite.h" />
     <ClInclude Include="src\Framework\Structs\Vector2.hpp" />
     <ClInclude Include="src\Framework\Window.h" />
   </ItemGroup>

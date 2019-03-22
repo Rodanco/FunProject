@@ -13,7 +13,7 @@ Window::Window(Uint32 width, Uint32 height) : Window(SDL_WINDOWPOS_UNDEFINED, SD
 }
 
 Window::Window(Uint32 posX, Uint32 posY, Uint32 width, Uint32 height)
-	: window(nullptr), renderer(nullptr), pos(), currentSize(width, height), beforeFullscreenSize(width, height), 
+	: window(nullptr), renderer(nullptr), pos(), currentSize(Vector2i(width, height)), beforeFullscreenSize(Vector2i(width, height)),
 	  isMinimized(false), close(false), hasResize(false), fullscreen(false), windowID(0)
 {
 	window = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>(
@@ -22,7 +22,10 @@ Window::Window(Uint32 posX, Uint32 posY, Uint32 width, Uint32 height)
 	renderer = std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>>(
 		SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED),
 		SDL_DestroyRenderer);
-	SDL_GetWindowPosition(window.get(), &pos.x, &pos.y);
+	Vector2i aux;
+	SDL_GetWindowPosition(window.get(), &aux.x, &aux.y);
+	windowID.store(SDL_GetWindowID(window.get()), std::memory_order_release);
+	pos.store(aux, std::memory_order_release);
 	windowID = SDL_GetWindowID(window.get());
 }
 
@@ -43,36 +46,32 @@ void Window::HandleEvents(const SDL_Event & e)
 		//ONLY_DEBUG(logText += " has gained focus from user";)
 		break;
 	case SDL_WINDOWEVENT_CLOSE:
-		close = true;
+		close.store(true, std::memory_order_release);
 		LOG("Window %d closed.", SDL_GetWindowID(window.get()));
 		break;
 	case SDL_WINDOWEVENT_MINIMIZED:
-		isMinimized = true;
+		isMinimized.store(true, std::memory_order_release);
 		LOG("Window %d minimized.", SDL_GetWindowID(window.get()));
 		break;
 	case SDL_WINDOWEVENT_RESTORED:
-		isMinimized = false;
+		isMinimized.store(false, std::memory_order_release);
 		LOG("Window %d restored.", SDL_GetWindowID(window.get()));
 		break;
 	case SDL_WINDOWEVENT_RESIZED:
-		currentSize.x = windowEvent.data1;
-		currentSize.y = windowEvent.data2;
-		if (!fullscreen)
-			beforeFullscreenSize = currentSize;
-		hasResize = true;
-		LOG("Window %d resized to %s.", SDL_GetWindowID(window.get()), currentSize.ToText().data());
+		currentSize.store({ windowEvent.data1, windowEvent.data2 }, std::memory_order_release);
+		hasResize.store(true, std::memory_order_release);
+		LOG("Window %d resized to %s.", SDL_GetWindowID(window.get()), currentSize.load(std::memory_order_acquire).ToString().data());
 		break;
 	case SDL_WINDOWEVENT_MOVED:
-		pos.x = windowEvent.data1;
-		pos.y = windowEvent.data2;
-		LOG("Window %d moved to %s.", SDL_GetWindowID(window.get()), pos.ToText().data());
+		pos.store({ windowEvent.data1, windowEvent.data2 }, std::memory_order_release);
+		LOG("Window %d moved to %s.", SDL_GetWindowID(window.get()), pos.load(std::memory_order_acquire).ToString().data());
 		break;
 	}
 }
 
 void Window::ClearWindow()
 {
-	hasResize = false;
+	hasResize.store(false, std::memory_order_release);
 	if(!isMinimized)
 		SDL_RenderClear(renderer.get());
 }
@@ -85,14 +84,11 @@ void Window::Draw()
 
 void Window::ToogleFullscreen()
 {
-	if (!fullscreen)
+	if (!fullscreen.load(std::memory_order_acquire))
 	{
-		fullscreen = true;
-		/*SDL_Rect rect;
-		SDL_GetDisplayBounds(SDL_GetWindowDisplayIndex(window.get()), &rect);
-		SDL_SetWindowSize(window.get(), rect.w, rect.h);*/
-		int sucess = SDL_SetWindowFullscreen(window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);
+		fullscreen.store(true, std::memory_order_release);		
 		ONLY_DEBUG(
+			int sucess = SDL_SetWindowFullscreen(window.get(), SDL_WINDOW_FULLSCREEN_DESKTOP);\
 			if (sucess != 0)\
 				SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "[ERROR VIDEO] Window %d suffered an error: %s\n", SDL_GetWindowID(window.get()), std::string(SDL_GetError())); \
 			else\
@@ -108,17 +104,17 @@ void Window::ToogleFullscreen()
 	SDL_SetWindowFullscreen(window.get(), 0);
 	//SDL_RestoreWindow(window.get());
 	//SDL_SetWindowSize(window.get(), beforeFullscreenSize.x, beforeFullscreenSize.y);
-	fullscreen = false;
+	fullscreen.store(false, std::memory_order_release);
 }
 
 bool Window::IsToClose() const
 {
-	return close;
+	return close.load(std::memory_order_acquire);
 }
 
 bool Window::HasResized(Vector2<int>* newSize) const
 {
 	if (newSize != nullptr)
-		*newSize = currentSize;
-	return hasResize;
+		*newSize = currentSize.load(std::memory_order_acquire);
+	return hasResize.load(std::memory_order_acquire);
 }
